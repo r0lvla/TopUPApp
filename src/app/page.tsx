@@ -98,7 +98,7 @@ export default function Home() {
           <div style={{ paddingTop: 56, padding: '56px 16px 16px' }}>
             {/* Product header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
-              <Avatar size={64} style={{ background: '#2c2c2e', fontSize: 32 }}>
+              <Avatar size={48} style={{ background: '#2c2c2e', fontSize: 24 }}>
                 {r.flag}
               </Avatar>
               <div>
