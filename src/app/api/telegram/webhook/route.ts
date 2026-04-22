@@ -31,9 +31,9 @@ interface TelegramUpdate {
 }
 
 const BOT_TOKEN = process.env.BOT_TOKEN!;
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://topupapp-seven.vercel.app';
 
 async function telegramApi(method: string, params: Record<string, unknown>) {
-  // Use fallback IP for blocked api.telegram.org
   const resp = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${method}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
   try {
     const update: TelegramUpdate = await req.json();
 
-    // Handle pre-checkout query (ЮKassa payment confirmation)
+    // Handle pre-checkout query
     if (update.pre_checkout_query) {
       await telegramApi('answerPreCheckoutQuery', {
         pre_checkout_query_id: update.pre_checkout_query.id,
@@ -99,13 +99,13 @@ export async function POST(req: NextRequest) {
       if (message.text === '/start') {
         await telegramApi('sendMessage', {
           chat_id: message.chat.id,
-          text: '🎮 Добро пожаловать в TopUPApp!\n\nПокупай подарочные карты Apple для Турции, США и Казахстана за секунды.',
+          text: '🎮 Добро пожаловать в TopUPApp!\n\nПокупай подарочные карты Apple для Турции, США и Казахстана за секунды.\n\nНажмите кнопку ниже, чтобы открыть магазин 👇',
           reply_markup: {
             inline_keyboard: [
               [
                 {
                   text: '🛒 Открыть магазин',
-                  web_app: { url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://topupapp.vercel.app'}` },
+                  web_app: { url: APP_URL },
                 },
               ],
             ],
@@ -117,13 +117,19 @@ export async function POST(req: NextRequest) {
       if (message.text === '/help') {
         await telegramApi('sendMessage', {
           chat_id: message.chat.id,
-          text: '📋 TopUPApp — подарочные карты Apple\n\n/regiones — Доступные регионы\n/help — Эта справка\n\nНажми кнопку ниже, чтобы открыть магазин 👇',
+          text: '📋 TopUPApp — подарочные карты Apple\n\n🇹🇷 Турция — самые дешёвые подписки\n🇺🇸 США — максимальный каталог\n🇰🇿 Казахстан — простой переход\n\nНажми кнопку ниже, чтобы открыть магазин 👇',
           reply_markup: {
             inline_keyboard: [
               [
                 {
                   text: '🛒 Открыть магазин',
-                  web_app: { url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://topupapp.vercel.app'}` },
+                  web_app: { url: APP_URL },
+                },
+              ],
+              [
+                {
+                  text: '📖 Как сменить регион',
+                  web_app: { url: `${APP_URL}/guide` },
                 },
               ],
             ],
