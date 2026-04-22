@@ -8,19 +8,25 @@ import { useHaptic } from '../hooks/useHaptic';
 import { RegionSelector } from '../components/RegionSelector';
 import { ProductCard } from '../components/ProductCard';
 import { ProductModal } from '../components/ProductModal';
-import { TabBar, TabId } from '../components/TabBar';
+import { TabBar } from '../components/TabBar';
 import { GuideView } from '../components/GuideView';
 import { AboutView } from '../components/AboutView';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { Product, TabId } from '../types';
 
-interface Product {
-  id: number;
-  region: string;
-  currency_code: string;
-  face_value: number;
-  price_rub: number;
-  currency_symbol: string;
-  is_active: boolean;
+function LocalHeadline({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return (
+    <div style={{
+      fontSize: 17,
+      fontWeight: 600,
+      letterSpacing: -0.4,
+      fontFamily: 'var(--ios-font)',
+      color: 'var(--ios-label)',
+      ...style,
+    }}>
+      {children}
+    </div>
+  );
 }
 
 export default function Home() {
@@ -54,14 +60,14 @@ export default function Home() {
     setModalOpen(true);
   }, []);
 
-  // Handle region change — reset scroll
+  // Handle region change
   const handleRegionChange = useCallback((newRegion: string) => {
     impact('light');
     setRegion(newRegion);
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [impact]);
 
-  // Handle tab change — reset scroll
+  // Handle tab change
   const handleTabChange = useCallback((newTab: TabId) => {
     setTab(newTab);
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
@@ -90,7 +96,7 @@ export default function Home() {
           WebkitOverflowScrolling: 'touch',
         }}
       >
-        {/* Header — Large Title with collapse animation */}
+        {/* Catalog Header — Large Title with collapse */}
         {tab === 'catalog' && (
           <div style={{
             padding: titleCompact ? '12px 16px 8px' : '20px 16px 4px',
@@ -105,11 +111,7 @@ export default function Home() {
             transition: 'all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.1)',
             borderBottom: titleCompact ? '0.5px solid var(--ios-separator)' : '0.5px solid transparent',
           }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-            }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: titleCompact ? 24 : 32, transition: 'font-size 0.25s ease' }}>🎁</span>
               <div>
                 <Title
@@ -140,6 +142,7 @@ export default function Home() {
           </div>
         )}
 
+        {/* Guide Header */}
         {tab === 'guide' && (
           <div style={{
             padding: '20px 0 4px',
@@ -160,6 +163,7 @@ export default function Home() {
           </div>
         )}
 
+        {/* About Header */}
         {tab === 'about' && (
           <div style={{
             padding: '20px 0 4px',
@@ -177,27 +181,22 @@ export default function Home() {
           </div>
         )}
 
-        {/* Tab content */}
+        {/* Catalog Tab */}
         {tab === 'catalog' && (
           <div style={{ animation: 'fadeIn 0.25s ease' }}>
-            {/* Region selector */}
             <div style={{ marginTop: 12 }}>
               <RegionSelector value={region} onChange={handleRegionChange} />
             </div>
 
-            {/* Products */}
             <div style={{ padding: '0 16px' }}>
               {loading ? (
                 <LoadingSkeleton />
               ) : filteredProducts.length === 0 ? (
-                <div style={{
-                  textAlign: 'center',
-                  padding: '48px 16px',
-                }}>
+                <div style={{ textAlign: 'center', padding: '48px 16px' }}>
                   <div style={{ fontSize: 48, marginBottom: 12 }}>😕</div>
-                  <Headline style={{ color: 'var(--ios-secondary-label)' }}>
+                  <LocalHeadline style={{ color: 'var(--ios-secondary-label)' }}>
                     Нет товаров
-                  </Headline>
+                  </LocalHeadline>
                   <Caption style={{ color: 'var(--ios-tertiary-label)', marginTop: 4 }}>
                     Для данного региона пока нет карточек
                   </Caption>
@@ -214,7 +213,6 @@ export default function Home() {
               )}
             </div>
 
-            {/* Quick tip */}
             {!loading && filteredProducts.length > 0 && (
               <div style={{
                 margin: '16px 16px 0',
@@ -238,30 +236,13 @@ export default function Home() {
         {tab === 'about' && <AboutView />}
       </div>
 
-      {/* TabBar */}
       <TabBar active={tab} onChange={handleTabChange} />
 
-      {/* Product Modal */}
       <ProductModal
         product={selectedProduct}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
       />
     </AppRoot>
-  );
-}
-
-function Headline({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return (
-    <div style={{
-      fontSize: 17,
-      fontWeight: 600,
-      letterSpacing: -0.4,
-      fontFamily: 'var(--ios-font)',
-      color: 'var(--ios-label)',
-      ...style,
-    }}>
-      {children}
-    </div>
   );
 }

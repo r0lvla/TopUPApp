@@ -9,19 +9,10 @@ import {
   Headline,
   Caption,
   Title,
-  Avatar,
   Divider,
 } from '@telegram-apps/telegram-ui';
 import { useHaptic } from '../hooks/useHaptic';
-
-interface Product {
-  id: number;
-  region: string;
-  currency_code: string;
-  face_value: number;
-  price_rub: number;
-  currency_symbol: string;
-}
+import { Product } from '../types';
 
 interface ProductModalProps {
   product: Product | null;

@@ -1,16 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-
-interface Product {
-  id: number;
-  region: string;
-  currency_code: string;
-  face_value: number;
-  price_rub: number;
-  currency_symbol: string;
-  is_active: boolean;
-}
+import { Product } from '../types';
 
 interface UseProductsReturn {
   products: Product[];
