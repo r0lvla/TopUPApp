@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'TopUPApp — Подарочные карты Apple',
-  description: 'Покупай подарочные карты Apple для Турции, США и Казахстана',
+  title: 'TopUPApp — Apple Gift Cards',
+  description: 'Подарочные карты Apple для Турции, США и Казахстана',
 };
 
 export const viewport: Viewport = {
@@ -11,6 +11,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: 'cover',
+  themeColor: '#000000',
 };
 
 export default function RootLayout({
@@ -20,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
-      <body>
+      <body style={{ background: '#000', margin: 0 }}>
         {children}
       </body>
     </html>
