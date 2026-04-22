@@ -273,7 +273,6 @@ export default function Home() {
                     </Caption>
                   </div>
                 }
-                chevron
                 multiline
               >
                 <Headline weight="3">Apple Gift Card</Headline>
