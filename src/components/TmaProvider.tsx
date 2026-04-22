@@ -1,31 +1,23 @@
 'use client';
 
 import { useEffect, type ReactNode } from 'react';
-import { SDKProvider, init, navigateBack, useLaunchParams } from '@telegram-apps/sdk-react';
+import { init } from '@telegram-apps/sdk';
 
-function TmaInner({ children }: { children: ReactNode }) {
-  const lp = useLaunchParams();
-
+export function TmaProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
-    // Try to expand the Mini App to full height
+    try {
+      init();
+    } catch {
+      // Not in Telegram context
+    }
     try {
       if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
         window.Telegram.WebApp.expand();
         window.Telegram.WebApp.setHeaderColor('#1c1c1e');
         window.Telegram.WebApp.setBackgroundColor('#1c1c1e');
       }
-    } catch {
-      // Not in Telegram context
-    }
+    } catch {}
   }, []);
 
   return <>{children}</>;
-}
-
-export function TmaProvider({ children }: { children: ReactNode }) {
-  return (
-    <SDKProvider>
-      <TmaInner>{children}</TmaInner>
-    </SDKProvider>
-  );
 }
