@@ -446,7 +446,7 @@ function GuidePage({ onBack, haptic }: { onBack: () => void; haptic: () => void 
                 multiline
                 after={
                   copiedIdx === idx ? (
-                    <Badge mode="primary" style={{ background: '#30D158' }}>✓</Badge>
+                    <Badge type="dot" mode="primary" />
                   ) : (
                     <Button mode="plain" size="s" onClick={() => copyAddress(addr, idx)}>
                       📋
