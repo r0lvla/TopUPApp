@@ -1,65 +1,173 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useState } from 'react';
+import { init, retrieveLaunchParams } from '@telegram-apps/sdk-react';
+
+interface Product {
+  id: string;
+  region: 'TR' | 'US' | 'KZ';
+  faceValue: number;
+  faceCurrency: string;
+  priceRub: string;
+  inStock: boolean;
+}
+
+const REGION_FLAGS: Record<string, string> = {
+  TR: '🇹🇷',
+  US: '🇺🇸',
+  KZ: '🇰🇿',
+};
+
+const REGION_NAMES: Record<string, string> = {
+  TR: 'Турция',
+  US: 'США',
+  KZ: 'Казахстан',
+};
 
 export default function Home() {
+  const [tgReady, setTgReady] = useState(false);
+  const [selectedRegion, setSelectedRegion] = useState<'TR' | 'US' | 'KZ' | 'ALL'>('ALL');
+  const [cart, setCart] = useState<Map<string, number>>(new Map());
+
+  useEffect(() => {
+    try {
+      init();
+      setTgReady(true);
+    } catch {
+      // Not in Telegram context
+      setTgReady(true);
+    }
+  }, []);
+
+  // Mock products for now (will be fetched from API)
+  const mockProducts: Product[] = [
+    { id: '1', region: 'TR', faceValue: 100, faceCurrency: 'TRY', priceRub: '350', inStock: true },
+    { id: '2', region: 'TR', faceValue: 250, faceCurrency: 'TRY', priceRub: '850', inStock: true },
+    { id: '3', region: 'TR', faceValue: 500, faceCurrency: 'TRY', priceRub: '1650', inStock: true },
+    { id: '4', region: 'US', faceValue: 10, faceCurrency: 'USD', priceRub: '1200', inStock: true },
+    { id: '5', region: 'US', faceValue: 25, faceCurrency: 'USD', priceRub: '2900', inStock: true },
+    { id: '6', region: 'US', faceValue: 50, faceCurrency: 'USD', priceRub: '5700', inStock: true },
+    { id: '7', region: 'KZ', faceValue: 5000, faceCurrency: 'KZT', priceRub: '1100', inStock: true },
+    { id: '8', region: 'KZ', faceValue: 10000, faceCurrency: 'KZT', priceRub: '2100', inStock: true },
+  ];
+
+  const filtered = selectedRegion === 'ALL'
+    ? mockProducts
+    : mockProducts.filter((p) => p.region === selectedRegion);
+
+  const cartTotal = Array.from(cart.entries()).reduce((sum, [id, qty]) => {
+    const p = mockProducts.find((x) => x.id === id);
+    return sum + (p ? parseFloat(p.priceRub) * qty : 0);
+  }, 0);
+
+  const cartCount = Array.from(cart.values()).reduce((s, q) => s + q, 0);
+
+  const addToCart = (id: string) => {
+    setCart((prev) => {
+      const next = new Map(prev);
+      next.set(id, (next.get(id) || 0) + 1);
+      return next;
+    });
+  };
+
+  const removeFromCart = (id: string) => {
+    setCart((prev) => {
+      const next = new Map(prev);
+      const qty = next.get(id) || 0;
+      if (qty <= 1) next.delete(id);
+      else next.set(id, qty - 1);
+      return next;
+    });
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="min-h-screen pb-24">
+      {/* Header */}
+      <header className="sticky top-0 z-10 bg-[var(--tg-theme-bg-color,#1c1c1e)]/90 backdrop-blur-md px-4 py-3 border-b border-[var(--tg-theme-separator-color,#2c2c2e)]">
+        <h1 className="text-xl font-bold">TopUPApp 🎮</h1>
+        <p className="text-sm text-[var(--tg-theme-subtitle-text-color,#8e8e93)]">
+          Подарочные карты Apple
+        </p>
+      </header>
+
+      {/* Region Filter */}
+      <div className="flex gap-2 px-4 py-3 overflow-x-auto">
+        {(['ALL', 'TR', 'US', 'KZ'] as const).map((r) => (
+          <button
+            key={r}
+            onClick={() => setSelectedRegion(r)}
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+              selectedRegion === r
+                ? 'bg-[var(--tg-theme-button-color,#0a84ff)] text-[var(--tg-theme-button-text-color,#ffffff)]'
+                : 'bg-[var(--tg-theme-secondary-bg-color,#2c2c2e)] text-[var(--tg-theme-text-color,#ffffff)]'
+            }`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            {r === 'ALL' ? '🌍 Все' : `${REGION_FLAGS[r]} ${REGION_NAMES[r]}`}
+          </button>
+        ))}
+      </div>
+
+      {/* Products Grid */}
+      <div className="grid grid-cols-1 gap-2 px-4">
+        {filtered.map((product) => {
+          const qty = cart.get(product.id) || 0;
+          return (
+            <div
+              key={product.id}
+              className="flex items-center justify-between p-4 rounded-xl bg-[var(--tg-theme-secondary-bg-color,#2c2c2e)] border border-[var(--tg-theme-separator-color,#3a3a3c)]"
+            >
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{REGION_FLAGS[product.region]}</span>
+                  <span className="font-semibold">
+                    {product.faceValue.toLocaleString()} {product.faceCurrency}
+                  </span>
+                </div>
+                <div className="text-[var(--tg-theme-subtitle-text-color,#8e8e93)] text-sm mt-1">
+                  {REGION_NAMES[product.region]} • {product.inStock ? '✅ В наличии' : '❌ Нет'}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-lg font-bold">{product.priceRub} ₽</span>
+                {qty > 0 ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => removeFromCart(product.id)}
+                      className="w-8 h-8 rounded-full bg-[var(--tg-theme-destructive-text-color,#ff453a)] text-white font-bold flex items-center justify-center"
+                    >
+                      −
+                    </button>
+                    <span className="w-6 text-center font-medium">{qty}</span>
+                    <button
+                      onClick={() => addToCart(product.id)}
+                      className="w-8 h-8 rounded-full bg-[var(--tg-theme-button-color,#0a84ff)] text-white font-bold flex items-center justify-center"
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => addToCart(product.id)}
+                    className="px-4 py-2 rounded-full bg-[var(--tg-theme-button-color,#0a84ff)] text-[var(--tg-theme-button-text-color,#ffffff)] text-sm font-medium"
+                  >
+                    В корзину
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Floating Cart Bar */}
+      {cartCount > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--tg-theme-bg-color,#1c1c1e)]/95 backdrop-blur-md border-t border-[var(--tg-theme-separator-color,#2c2c2e)]">
+          <button className="w-full py-3 rounded-xl bg-[var(--tg-theme-button-color,#0a84ff)] text-[var(--tg-theme-button-text-color,#ffffff)] font-semibold text-lg flex items-center justify-center gap-2">
+            🛒 Оплатить {cartTotal.toLocaleString()} ₽
+            <span className="bg-white/20 px-2 py-0.5 rounded-full text-sm">{cartCount}</span>
+          </button>
         </div>
-      </main>
+      )}
     </div>
   );
 }
