@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next';
-import { TmaProvider } from '@/components/TmaProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -21,8 +20,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
-      <body className="bg-[var(--tg-theme-bg-color, #1c1c1e)] text-[var(--tg-theme-text-color, #ffffff)] min-h-screen antialiased">
-        <TmaProvider>{children}</TmaProvider>
+      <body>
+        {children}
       </body>
     </html>
   );
