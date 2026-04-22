@@ -1,9 +1,7 @@
 'use client';
 
-import { FixedLayout, Tabbar } from '@telegram-apps/telegram-ui';
 import { useHaptic } from '../hooks/useHaptic';
-
-export type TabId = 'catalog' | 'guide' | 'about';
+import type { TabId } from '../types';
 
 interface TabBarProps {
   active: TabId;
@@ -20,18 +18,48 @@ export function TabBar({ active, onChange }: TabBarProps) {
   const { selection } = useHaptic();
 
   return (
-    <FixedLayout style={{ background: 'transparent' }}>
+    <>
       {/* Fade gradient above tabbar */}
       <div
-        className="tabbar-fade"
-        style={{ height: 40, width: '100%', position: 'absolute', top: -40, left: 0 }}
+        style={{
+          position: 'fixed',
+          bottom: 65,
+          left: 0,
+          right: 0,
+          height: 40,
+          background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
+          pointerEvents: 'none',
+          zIndex: 99,
+          maxWidth: 480,
+          margin: '0 auto',
+        }}
       />
-      <div className="glass-heavy" style={{ borderTop: '0.5px solid var(--ios-separator)' }}>
-        <Tabbar style={{ background: 'transparent' }}>
-          {TABS.map((tab) => (
-            <Tabbar.Item
+      {/* Tabbar itself */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
+          maxWidth: 480,
+          margin: '0 auto',
+          background: 'rgba(28, 28, 30, 0.88)',
+          backdropFilter: 'blur(28px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+          borderTop: '0.5px solid rgba(84, 84, 88, 0.65)',
+          display: 'flex',
+          justifyContent: 'space-around',
+          alignItems: 'center',
+          height: 65,
+          paddingBottom: 4,
+        }}
+      >
+        {TABS.map((tab) => {
+          const isActive = active === tab.id;
+          return (
+            <button
               key={tab.id}
-              selected={active === tab.id}
               onClick={() => {
                 if (active !== tab.id) {
                   selection();
@@ -40,30 +68,34 @@ export function TabBar({ active, onChange }: TabBarProps) {
               }}
               style={{
                 background: 'transparent',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <div style={{
+                border: 'none',
+                outline: 'none',
+                cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: 2,
-                opacity: active === tab.id ? 1 : 0.4,
-                transition: 'opacity 0.2s ease',
+                flex: 1,
+                height: '100%',
+                color: isActive ? '#0A84FF' : 'rgba(235, 235, 245, 0.3)',
+                transition: 'color 0.2s ease',
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              <span style={{ fontSize: 24, lineHeight: 1 }}>{tab.icon}</span>
+              <span style={{
+                fontSize: 10,
+                fontWeight: isActive ? 600 : 500,
+                letterSpacing: -0.1,
+                color: 'inherit',
               }}>
-                <span style={{ fontSize: 24, lineHeight: 1 }}>{tab.icon}</span>
-                <span style={{
-                  fontSize: 10,
-                  fontWeight: active === tab.id ? 600 : 400,
-                  letterSpacing: -0.1,
-                }}>
-                  {tab.label}
-                </span>
-              </div>
-            </Tabbar.Item>
-          ))}
-        </Tabbar>
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
-    </FixedLayout>
+    </>
   );
 }

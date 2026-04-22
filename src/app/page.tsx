@@ -14,21 +14,6 @@ import { AboutView } from '../components/AboutView';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { Product, TabId } from '../types';
 
-function LocalHeadline({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return (
-    <div style={{
-      fontSize: 17,
-      fontWeight: 600,
-      letterSpacing: -0.4,
-      fontFamily: 'var(--ios-font)',
-      color: 'var(--ios-label)',
-      ...style,
-    }}>
-      {children}
-    </div>
-  );
-}
-
 export default function Home() {
   const [region, setRegion] = useState('TR');
   const [tab, setTab] = useState<TabId>('catalog');
@@ -39,35 +24,26 @@ export default function Home() {
   const { products, loading } = useProducts();
   const { impact } = useHaptic();
 
-  // Init Telegram SDK
-  useEffect(() => {
-    try { init(); } catch {}
-  }, []);
+  useEffect(() => { try { init(); } catch {} }, []);
 
-  // Scroll handler for title collapse
   const handleScroll = useCallback(() => {
     if (!scrollRef.current) return;
-    const scrollY = scrollRef.current.scrollTop;
-    setTitleCompact(scrollY > 40);
+    setTitleCompact(scrollRef.current.scrollTop > 40);
   }, []);
 
-  // Filter products by region
   const filteredProducts = products.filter((p: Product) => p.region === region && p.is_active);
 
-  // Handle product select
   const handleSelect = useCallback((product: Product) => {
     setSelectedProduct(product);
     setModalOpen(true);
   }, []);
 
-  // Handle region change
   const handleRegionChange = useCallback((newRegion: string) => {
     impact('light');
     setRegion(newRegion);
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [impact]);
 
-  // Handle tab change
   const handleTabChange = useCallback((newTab: TabId) => {
     setTab(newTab);
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
@@ -81,10 +57,11 @@ export default function Home() {
         maxWidth: 480,
         margin: '0 auto',
         minHeight: '100vh',
+        background: '#000',
         position: 'relative',
       }}
     >
-      {/* Scrollable content area */}
+      {/* Scrollable area */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
@@ -92,111 +69,67 @@ export default function Home() {
           height: '100vh',
           overflowY: 'auto',
           overflowX: 'hidden',
-          paddingBottom: 90,
+          paddingBottom: 85,
           WebkitOverflowScrolling: 'touch',
         }}
       >
-        {/* Catalog Header — Large Title with collapse */}
+        {/* ========== CATALOG TAB ========== */}
         {tab === 'catalog' && (
-          <div style={{
-            padding: titleCompact ? '12px 16px 8px' : '20px 16px 4px',
-            position: 'sticky',
-            top: 0,
-            zIndex: 10,
-            background: titleCompact
-              ? 'rgba(0, 0, 0, 0.85)'
-              : 'transparent',
-            backdropFilter: titleCompact ? 'blur(20px) saturate(180%)' : 'none',
-            WebkitBackdropFilter: titleCompact ? 'blur(20px) saturate(180%)' : 'none',
-            transition: 'all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.1)',
-            borderBottom: titleCompact ? '0.5px solid var(--ios-separator)' : '0.5px solid transparent',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: titleCompact ? 24 : 32, transition: 'font-size 0.25s ease' }}>🎁</span>
-              <div>
+          <>
+            {/* Sticky header with collapse */}
+            <div style={{
+              padding: titleCompact ? '10px 16px 10px' : '16px 16px 0',
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+              background: titleCompact ? 'rgba(0, 0, 0, 0.85)' : '#000',
+              backdropFilter: titleCompact ? 'blur(20px) saturate(180%)' : 'none',
+              WebkitBackdropFilter: titleCompact ? 'blur(20px) saturate(180%)' : 'none',
+              transition: 'all 0.2s ease',
+              borderBottom: titleCompact ? '0.5px solid var(--ios-separator)' : 'none',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{
+                  fontSize: titleCompact ? 22 : 30,
+                  transition: 'font-size 0.2s ease',
+                  lineHeight: 1,
+                }}>🎁</span>
                 <Title
                   level={titleCompact ? '3' : '1'}
                   style={{
                     letterSpacing: -0.8,
-                    transition: 'all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.1)',
+                    transition: 'all 0.2s ease',
                     lineHeight: titleCompact ? 1.2 : 1.1,
                   }}
                 >
                   TopUPApp
                 </Title>
               </div>
-            </div>
-            {!titleCompact && (
-              <Subheadline
-                style={{
+              {!titleCompact && (
+                <Subheadline style={{
                   color: 'var(--ios-secondary-label)',
-                  marginTop: 4,
-                  marginLeft: 42,
-                  animation: 'fadeIn 0.3s ease',
+                  marginTop: 2,
+                  marginLeft: 40,
                   letterSpacing: -0.2,
-                }}
-              >
-                Подарочные карты Apple
-              </Subheadline>
-            )}
-          </div>
-        )}
+                }}>
+                  Подарочные карты Apple
+                </Subheadline>
+              )}
+            </div>
 
-        {/* Guide Header */}
-        {tab === 'guide' && (
-          <div style={{
-            padding: '20px 0 4px',
-            marginLeft: 16,
-            position: 'sticky',
-            top: 0,
-            zIndex: 10,
-            background: 'rgba(0, 0, 0, 0.9)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-          }}>
-            <Title level="2" style={{ letterSpacing: -0.6 }}>
-              📖 Гайд смены региона
-            </Title>
-            <Subheadline style={{ color: 'var(--ios-secondary-label)', marginTop: 2 }}>
-              Пошаговая инструкция
-            </Subheadline>
-          </div>
-        )}
-
-        {/* About Header */}
-        {tab === 'about' && (
-          <div style={{
-            padding: '20px 0 4px',
-            marginLeft: 16,
-            position: 'sticky',
-            top: 0,
-            zIndex: 10,
-            background: 'rgba(0, 0, 0, 0.9)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-          }}>
-            <Title level="2" style={{ letterSpacing: -0.6 }}>
-              О приложении
-            </Title>
-          </div>
-        )}
-
-        {/* Catalog Tab */}
-        {tab === 'catalog' && (
-          <div style={{ animation: 'fadeIn 0.25s ease' }}>
-            <div style={{ marginTop: 12 }}>
+            {/* Region selector */}
+            <div style={{ marginTop: 10 }}>
               <RegionSelector value={region} onChange={handleRegionChange} />
             </div>
 
-            <div style={{ padding: '0 16px' }}>
+            {/* Product list */}
+            <div style={{ padding: '4px 16px 0' }}>
               {loading ? (
                 <LoadingSkeleton />
               ) : filteredProducts.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '48px 16px' }}>
                   <div style={{ fontSize: 48, marginBottom: 12 }}>😕</div>
-                  <LocalHeadline style={{ color: 'var(--ios-secondary-label)' }}>
-                    Нет товаров
-                  </LocalHeadline>
+                  <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--ios-secondary-label)' }}>Нет товаров</div>
                   <Caption style={{ color: 'var(--ios-tertiary-label)', marginTop: 4 }}>
                     Для данного региона пока нет карточек
                   </Caption>
@@ -213,31 +146,74 @@ export default function Home() {
               )}
             </div>
 
+            {/* Tip */}
             {!loading && filteredProducts.length > 0 && (
               <div style={{
-                margin: '16px 16px 0',
-                padding: '12px 16px',
-                background: 'var(--ios-fill-tertiary)',
+                margin: '12px 16px 0',
+                padding: '10px 14px',
+                background: 'rgba(120, 120, 128, 0.12)',
                 borderRadius: 12,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 10,
+                gap: 8,
               }}>
-                <span style={{ fontSize: 18 }}>💡</span>
-                <Caption style={{ color: 'var(--ios-secondary-label)', lineHeight: 1.4 }}>
-                  Нужна помощь со сменой региона? Загляните в раздел «Гайд»
+                <span style={{ fontSize: 16 }}>💡</span>
+                <Caption style={{ color: 'var(--ios-secondary-label)', lineHeight: 1.4, fontSize: 13 }}>
+                  Нужна помощь со сменой региона? Загляните в «Гайд»
                 </Caption>
               </div>
             )}
-          </div>
+          </>
         )}
 
-        {tab === 'guide' && <GuideView />}
-        {tab === 'about' && <AboutView />}
+        {/* ========== GUIDE TAB ========== */}
+        {tab === 'guide' && (
+          <>
+            <div style={{
+              padding: '16px 16px 0',
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+              background: 'rgba(0, 0, 0, 0.92)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}>
+              <Title level="2" style={{ letterSpacing: -0.6 }}>
+                📖 Гайд смены региона
+              </Title>
+              <Subheadline style={{ color: 'var(--ios-secondary-label)', marginTop: 2, marginBottom: 8 }}>
+                Пошаговая инструкция
+              </Subheadline>
+            </div>
+            <GuideView />
+          </>
+        )}
+
+        {/* ========== ABOUT TAB ========== */}
+        {tab === 'about' && (
+          <>
+            <div style={{
+              padding: '16px 16px 0',
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+              background: 'rgba(0, 0, 0, 0.92)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}>
+              <Title level="2" style={{ letterSpacing: -0.6, marginBottom: 8 }}>
+                О приложении
+              </Title>
+            </div>
+            <AboutView />
+          </>
+        )}
       </div>
 
+      {/* TabBar — always visible */}
       <TabBar active={tab} onChange={handleTabChange} />
 
+      {/* Product detail modal */}
       <ProductModal
         product={selectedProduct}
         open={modalOpen}
