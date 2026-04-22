@@ -10,13 +10,9 @@ import {
   Subheadline,
   Headline,
   Caption,
-  List,
-  Divider,
   Avatar,
   Badge,
   FixedLayout,
-  Tabbar,
-  TabbarItem,
 } from '@telegram-apps/telegram-ui';
 import { init } from '@telegram-apps/sdk';
 
