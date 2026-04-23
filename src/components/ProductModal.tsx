@@ -144,28 +144,20 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
           borderRadius: '20px 20px 0 0',
           // Opening: keyframe animation. Closing: transition. Dragging: none.
           ...(isActive && dragY === 0
-            ? { animation: 'slideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards' }
+            ? { animation: 'slideUpSheet 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards' }
             : {}),
           ...(closing
             ? {
-                transform: 'translateY(100%)',
+                transform: 'translate3d(0, 100%, 0)',
                 transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
               }
             : {}),
           ...(dragY > 0 && isActive
-            ? { transform: `translateY(${dragY}px)`, transition: 'none' }
+            ? { transform: `translate3d(0, ${dragY}px, 0)`, transition: 'none' }
             : {}),
           paddingBottom: 'env(safe-area-inset-bottom, 32px)',
         }}
       >
-        {/* Inline @keyframes */}
-        <style>{`
-          @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to   { transform: translateY(0); }
-          }
-        `}</style>
-
         {/* Handle */}
         <div style={{
           display: 'flex',

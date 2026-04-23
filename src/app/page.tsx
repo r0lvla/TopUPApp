@@ -28,8 +28,13 @@ export default function Home() {
 
   const handleScroll = useCallback(() => {
     if (!scrollRef.current) return;
-    const compact = scrollRef.current.scrollTop > 40;
-    setTitleCompact(prev => prev !== compact ? compact : prev);
+    const y = scrollRef.current.scrollTop;
+    // Hysteresis: enter compact at >50, exit at <25 — dead zone prevents flickering
+    setTitleCompact(prev => {
+      if (prev && y < 25) return false;
+      if (!prev && y > 50) return true;
+      return prev;
+    });
   }, []);
 
   const filteredProducts = products.filter((p: Product) => p.region === region && p.in_stock);

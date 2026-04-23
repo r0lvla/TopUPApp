@@ -95,6 +95,11 @@ body::before {
   100% { background-position: 200% 0; }
 }
 
+@keyframes slideUpSheet {
+  from { transform: translate3d(0, 100%, 0); }
+  to   { transform: translate3d(0, 0, 0); }
+}
+
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
