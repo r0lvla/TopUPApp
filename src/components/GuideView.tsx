@@ -90,7 +90,7 @@ const REGION_META: Record<string, {
     countryRu: 'Турция',
     accent: '#FF9F0A',
     gradient: 'linear-gradient(135deg, #E30A17 0%, #FF6B35 100%)',
-    glowColor: 'rgba(227, 10, 23, 0.07)',
+    glowColor: 'rgba(227, 10, 23, 0.11)',
     flag: '🇹🇷',
   },
   US: {
@@ -98,7 +98,7 @@ const REGION_META: Record<string, {
     countryRu: 'США',
     accent: '#0A84FF',
     gradient: 'linear-gradient(135deg, #3C5AFF 0%, #B31942 100%)',
-    glowColor: 'rgba(60, 90, 255, 0.07)',
+    glowColor: 'rgba(60, 90, 255, 0.11)',
     flag: '🇺🇸',
   },
   KZ: {
@@ -106,7 +106,7 @@ const REGION_META: Record<string, {
     countryRu: 'Казахстан',
     accent: '#30D158',
     gradient: 'linear-gradient(135deg, #00B5B6 0%, #FFB900 100%)',
-    glowColor: 'rgba(0, 181, 182, 0.07)',
+    glowColor: 'rgba(0, 181, 182, 0.11)',
     flag: '🇰🇿',
   },
 };
@@ -285,13 +285,13 @@ export function GuideView() {
             fontWeight: 600,
             letterSpacing: -0.3,
             cursor: currentStep === 0 ? 'default' : 'pointer',
-            transition: 'all 0.15s ease',
+            transition: 'all 0.4s ease',
             fontFamily: 'inherit',
             WebkitTapHighlightColor: 'transparent',
           }}
           onTouchStart={(e) => {
             if (currentStep === 0) return;
-            (e.currentTarget as HTMLElement).style.background = 'rgba(50, 65, 110, 0.55)';
+            (e.currentTarget as HTMLElement).style.background = 'rgba(80, 100, 180, 0.6)';
           }}
           onTouchEnd={(e) => {
             (e.currentTarget as HTMLElement).style.background = 'rgba(30, 40, 65, 0.35)';
@@ -319,13 +319,13 @@ export function GuideView() {
             fontWeight: 600,
             letterSpacing: -0.3,
             cursor: currentStep === GUIDE_STEPS.length - 1 ? 'default' : 'pointer',
-            transition: 'all 0.15s ease',
+            transition: 'all 0.4s ease',
             fontFamily: 'inherit',
             WebkitTapHighlightColor: 'transparent',
           }}
           onTouchStart={(e) => {
             if (currentStep === GUIDE_STEPS.length - 1) return;
-            (e.currentTarget as HTMLElement).style.background = 'rgba(50, 65, 110, 0.55)';
+            (e.currentTarget as HTMLElement).style.background = 'rgba(80, 100, 180, 0.6)';
           }}
           onTouchEnd={(e) => {
             (e.currentTarget as HTMLElement).style.background = 'rgba(30, 40, 65, 0.35)';
@@ -376,7 +376,7 @@ export function GuideView() {
                 position: 'absolute',
                 inset: 0,
                 background: meta.gradient,
-                opacity: isOpen ? 0.18 : 0.08,
+                opacity: isOpen ? 0.25 : 0.12,
                 transition: 'opacity 0.3s ease',
                 pointerEvents: 'none',
               }} />
