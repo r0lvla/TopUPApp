@@ -28,7 +28,8 @@ export default function Home() {
 
   const handleScroll = useCallback(() => {
     if (!scrollRef.current) return;
-    setTitleCompact(scrollRef.current.scrollTop > 40);
+    const compact = scrollRef.current.scrollTop > 40;
+    setTitleCompact(prev => prev !== compact ? compact : prev);
   }, []);
 
   const filteredProducts = products.filter((p: Product) => p.region === region && p.in_stock);
@@ -85,36 +86,41 @@ export default function Home() {
               background: titleCompact ? 'rgba(0, 0, 0, 0.85)' : '#000',
               backdropFilter: titleCompact ? 'blur(20px) saturate(180%)' : 'none',
               WebkitBackdropFilter: titleCompact ? 'blur(20px) saturate(180%)' : 'none',
-              transition: 'all 0.2s ease',
+              transition: 'background 0.25s ease, border-bottom 0.25s ease, padding 0.25s ease',
               borderBottom: titleCompact ? '0.5px solid var(--ios-separator)' : 'none',
+              willChange: 'background',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{
                   fontSize: titleCompact ? 22 : 30,
-                  transition: 'font-size 0.2s ease',
+                  transition: 'font-size 0.25s ease',
                   lineHeight: 1,
                 }}>🎁</span>
                 <Title
                   level={titleCompact ? '3' : '1'}
                   style={{
                     letterSpacing: -0.8,
-                    transition: 'all 0.2s ease',
+                    transition: 'all 0.25s ease',
                     lineHeight: titleCompact ? 1.2 : 1.1,
                   }}
                 >
                   TopUPApp
                 </Title>
               </div>
-              {!titleCompact && (
-                <Subheadline style={{
-                  color: 'var(--ios-secondary-label)',
-                  marginTop: 2,
-                  marginLeft: 40,
-                  letterSpacing: -0.2,
-                }}>
-                  Подарочные карты Apple
-                </Subheadline>
-              )}
+              <Subheadline style={{
+                color: 'var(--ios-secondary-label)',
+                marginTop: 2,
+                marginLeft: 40,
+                letterSpacing: -0.2,
+                opacity: titleCompact ? 0 : 1,
+                maxHeight: titleCompact ? 0 : 24,
+                transform: titleCompact ? 'translateY(-6px)' : 'translateY(0)',
+                transition: 'opacity 0.2s ease, max-height 0.2s ease, transform 0.2s ease',
+                overflow: 'hidden',
+                pointerEvents: titleCompact ? 'none' : 'auto',
+              }}>
+                Подарочные карты Apple
+              </Subheadline>
             </div>
 
             {/* Region selector */}

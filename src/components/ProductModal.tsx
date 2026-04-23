@@ -45,7 +45,7 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
   const handleClose = useCallback(() => {
     if (purchasing) return;
     setVisible(false);
-    setTimeout(onClose, 250);
+    setTimeout(onClose, 450);
   }, [purchasing, onClose]);
 
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
@@ -146,8 +146,9 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
             ? `translateY(${dragY}px)`
             : 'translateY(100%)',
           transition: dragY === 0
-            ? 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)'
+            ? 'transform 0.45s cubic-bezier(0.32, 0.72, 0, 1)'
             : 'none',
+          willChange: 'transform',
           paddingBottom: 'env(safe-area-inset-bottom, 32px)',
         }}
       >
