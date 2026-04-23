@@ -90,7 +90,7 @@ const REGION_META: Record<string, {
     countryRu: 'Турция',
     accent: '#FF9F0A',
     gradient: 'linear-gradient(135deg, #E30A17 0%, #FF6B35 100%)',
-    glowColor: 'rgba(227, 10, 23, 0.15)',
+    glowColor: 'rgba(227, 10, 23, 0.07)',
     flag: '🇹🇷',
   },
   US: {
@@ -98,7 +98,7 @@ const REGION_META: Record<string, {
     countryRu: 'США',
     accent: '#0A84FF',
     gradient: 'linear-gradient(135deg, #3C5AFF 0%, #B31942 100%)',
-    glowColor: 'rgba(60, 90, 255, 0.15)',
+    glowColor: 'rgba(60, 90, 255, 0.07)',
     flag: '🇺🇸',
   },
   KZ: {
@@ -106,7 +106,7 @@ const REGION_META: Record<string, {
     countryRu: 'Казахстан',
     accent: '#30D158',
     gradient: 'linear-gradient(135deg, #00B5B6 0%, #FFB900 100%)',
-    glowColor: 'rgba(0, 181, 182, 0.15)',
+    glowColor: 'rgba(0, 181, 182, 0.07)',
     flag: '🇰🇿',
   },
 };
@@ -274,15 +274,27 @@ export function GuideView() {
             flex: 1,
             height: 48,
             borderRadius: 14,
-            border: '1.5px solid rgba(120, 120, 128, 0.24)',
-            background: currentStep === 0 ? 'rgba(120, 120, 128, 0.08)' : 'rgba(120, 120, 128, 0.12)',
-            color: currentStep === 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.85)',
+            border: '1px solid rgba(120, 120, 128, 0.18)',
+            background: currentStep === 0
+              ? 'rgba(120, 120, 128, 0.06)'
+              : 'rgba(30, 40, 65, 0.35)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            color: currentStep === 0 ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.75)',
             fontSize: 16,
             fontWeight: 600,
             letterSpacing: -0.3,
             cursor: currentStep === 0 ? 'default' : 'pointer',
-            transition: 'all 0.2s ease',
+            transition: 'all 0.15s ease',
             fontFamily: 'inherit',
+            WebkitTapHighlightColor: 'transparent',
+          }}
+          onTouchStart={(e) => {
+            if (currentStep === 0) return;
+            (e.currentTarget as HTMLElement).style.background = 'rgba(50, 65, 110, 0.55)';
+          }}
+          onTouchEnd={(e) => {
+            (e.currentTarget as HTMLElement).style.background = 'rgba(30, 40, 65, 0.35)';
           }}
         >
           ← Назад
@@ -294,19 +306,29 @@ export function GuideView() {
             flex: 1,
             height: 48,
             borderRadius: 14,
-            border: 'none',
+            border: '1px solid rgba(120, 120, 128, 0.18)',
             background: currentStep === GUIDE_STEPS.length - 1
-              ? 'rgba(10, 132, 255, 0.15)'
-              : '#0A84FF',
+              ? 'rgba(120, 120, 128, 0.06)'
+              : 'rgba(30, 40, 65, 0.35)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
             color: currentStep === GUIDE_STEPS.length - 1
-              ? 'rgba(255,255,255,0.3)'
-              : '#fff',
+              ? 'rgba(255,255,255,0.18)'
+              : 'rgba(255,255,255,0.75)',
             fontSize: 16,
             fontWeight: 600,
             letterSpacing: -0.3,
             cursor: currentStep === GUIDE_STEPS.length - 1 ? 'default' : 'pointer',
-            transition: 'all 0.2s ease',
+            transition: 'all 0.15s ease',
             fontFamily: 'inherit',
+            WebkitTapHighlightColor: 'transparent',
+          }}
+          onTouchStart={(e) => {
+            if (currentStep === GUIDE_STEPS.length - 1) return;
+            (e.currentTarget as HTMLElement).style.background = 'rgba(50, 65, 110, 0.55)';
+          }}
+          onTouchEnd={(e) => {
+            (e.currentTarget as HTMLElement).style.background = 'rgba(30, 40, 65, 0.35)';
           }}
         >
           Далее →
@@ -341,18 +363,30 @@ export function GuideView() {
               style={{
                 borderRadius: 16,
                 overflow: 'hidden',
-                border: `1.5px solid ${isOpen ? meta.accent + '44' : 'rgba(84, 84, 88, 0.4)'}`,
+                border: `1px solid ${isOpen ? meta.accent + '33' : 'rgba(84, 84, 88, 0.3)'}`,
                 transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
                 boxShadow: isOpen
-                  ? `0 0 20px ${meta.glowColor}, 0 2px 12px rgba(0,0,0,0.3)`
-                  : '0 2px 12px rgba(0,0,0,0.3), 0 0 0.5px rgba(255,255,255,0.06)',
+                  ? `0 0 16px ${meta.glowColor}`
+                  : `0 2px 10px ${meta.glowColor}`,
+                position: 'relative',
               }}
             >
-              {/* Gradient frame around content */}
+              {/* Gradient bg — always visible, brighter when open */}
               <div style={{
-                background: isOpen ? meta.gradient : 'rgba(44, 44, 46, 0.95)',
-                padding: 0,
-                transition: 'background 0.3s ease',
+                position: 'absolute',
+                inset: 0,
+                background: meta.gradient,
+                opacity: isOpen ? 0.18 : 0.08,
+                transition: 'opacity 0.3s ease',
+                pointerEvents: 'none',
+              }} />
+
+              {/* Dark overlay for readability */}
+              <div style={{
+                position: 'relative',
+                background: 'rgba(20, 20, 22, 0.82)',
+                backdropFilter: 'blur(16px) saturate(150%)',
+                WebkitBackdropFilter: 'blur(16px) saturate(150%)',
               }}>
                 {/* Card header — tappable */}
                 <button
@@ -479,6 +513,7 @@ export function GuideView() {
                   </div>
                 )}
               </div>
+              {/* end dark overlay */}
             </div>
           );
         })}
