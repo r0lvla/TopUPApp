@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useHaptic } from '../hooks/useHaptic';
 import { Product, CURRENCY_SYMBOLS } from '../types';
 
@@ -21,6 +21,10 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
   const [purchasing, setPurchasing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
+  const [dragY, setDragY] = useState(0);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const dragStartY = useRef(0);
+  const isDragging = useRef(false);
 
   useEffect(() => {
     if (open) {
@@ -33,9 +37,7 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
   // Close on back gesture/button
   useEffect(() => {
     if (!open) return;
-    const handler = () => {
-      onClose();
-    };
+    const handler = () => onClose();
     window.addEventListener('popstate', handler);
     return () => window.removeEventListener('popstate', handler);
   }, [open, onClose]);
@@ -49,6 +51,29 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget) handleClose();
   }, [handleClose]);
+
+  // Swipe-to-dismiss handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    dragStartY.current = e.touches[0].clientY;
+    isDragging.current = true;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    const dy = e.touches[0].clientY - dragStartY.current;
+    if (dy > 0) {
+      setDragY(dy);
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    isDragging.current = false;
+    // If dragged more than 100px down — close
+    if (dragY > 100) {
+      handleClose();
+    }
+    setDragY(0);
+  }, [dragY, handleClose]);
 
   const handlePurchase = useCallback(async () => {
     if (!product) return;
@@ -108,24 +133,32 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
       }}
     >
       <div
+        ref={sheetRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         style={{
           width: '100%',
           maxWidth: 480,
           background: 'rgba(28, 28, 30, 0.95)',
           borderRadius: '20px 20px 0 0',
-          transform: visible ? 'translateY(0)' : 'translateY(100%)',
-          transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
+          transform: visible
+            ? `translateY(${dragY}px)`
+            : 'translateY(100%)',
+          transition: dragY === 0
+            ? 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)'
+            : 'none',
           paddingBottom: 'env(safe-area-inset-bottom, 32px)',
         }}
       >
-        {/* Handle + Close button */}
+        {/* Handle — touch target for swipe */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          padding: '10px 16px 4px',
-          position: 'relative',
+          justifyContent: 'space-between',
+          padding: '10px 16px 8px',
         }}>
+          <div style={{ width: 36 }} />
           <div style={{
             width: 36, height: 5, borderRadius: 2.5,
             background: 'rgba(120, 120, 128, 0.4)',
@@ -133,9 +166,6 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
           <button
             onClick={handleClose}
             style={{
-              position: 'absolute',
-              right: 16,
-              top: 6,
               width: 30, height: 30,
               borderRadius: 15,
               background: 'rgba(120, 120, 128, 0.24)',
@@ -149,21 +179,22 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
               fontWeight: 600,
               lineHeight: 1,
               padding: 0,
+              flexShrink: 0,
             }}
           >
             ✕
           </button>
         </div>
 
-        {/* Product header */}
+        {/* Product header — now fully below the handle row */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           gap: 16,
-          padding: '16px 20px',
+          padding: '12px 20px',
           background: meta.gradient,
           borderRadius: '16px',
-          margin: '12px 16px 0',
+          margin: '0 16px',
         }}>
           <div style={{
             width: 56, height: 56, borderRadius: 14,
