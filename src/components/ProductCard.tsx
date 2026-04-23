@@ -2,7 +2,7 @@
 
 import { Headline, Caption, Button, Avatar } from '@telegram-apps/telegram-ui';
 import { useHaptic } from '../hooks/useHaptic';
-import { Product } from '../types';
+import { Product, CURRENCY_SYMBOLS } from '../types';
 
 interface ProductCardProps {
   product: Product;
@@ -19,6 +19,7 @@ const REGION_META: Record<string, { flag: string; name: string; gradient: string
 export function ProductCard({ product, index, onSelect }: ProductCardProps) {
   const { impact } = useHaptic();
   const meta = REGION_META[product.region] || REGION_META.TR;
+  const symbol = CURRENCY_SYMBOLS[product.face_currency] || product.face_currency;
 
   const handleSelect = () => {
     impact('medium');
@@ -37,7 +38,6 @@ export function ProductCard({ product, index, onSelect }: ProductCardProps) {
       }}
       onClick={handleSelect}
     >
-      {/* Subtle top-right glow */}
       <div style={{
         position: 'absolute',
         top: -30,
@@ -50,7 +50,6 @@ export function ProductCard({ product, index, onSelect }: ProductCardProps) {
         pointerEvents: 'none',
       }} />
 
-      {/* Header row */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -67,12 +66,11 @@ export function ProductCard({ product, index, onSelect }: ProductCardProps) {
             Apple Gift Card
           </Headline>
           <Caption style={{ color: 'var(--ios-secondary-label)', marginTop: 2 }}>
-            {meta.name} • {product.face_value.toLocaleString()} {product.currency_symbol}
+            {meta.name} • {product.face_value.toLocaleString()} {symbol}
           </Caption>
         </div>
       </div>
 
-      {/* Price + Button row */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -92,7 +90,7 @@ export function ProductCard({ product, index, onSelect }: ProductCardProps) {
             {product.price_rub.toLocaleString('ru-RU')} ₽
           </div>
           <Caption style={{ color: 'var(--ios-tertiary-label)', marginTop: 4 }}>
-            ≈ {(product.price_rub / product.face_value).toFixed(1)} ₽/{product.currency_symbol}
+            ≈ {(product.price_rub / product.face_value).toFixed(1)} ₽/{symbol}
           </Caption>
         </div>
 

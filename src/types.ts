@@ -1,11 +1,20 @@
 export interface Product {
-  id: number;
+  id: string;
   region: string;
-  currency_code: string;
   face_value: number;
+  face_currency: string;
   price_rub: number;
-  currency_symbol: string;
-  is_active: boolean;
+  supplier: string;
+  in_stock: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export type TabId = 'catalog' | 'guide' | 'about';
+
+// Currency symbol map
+export const CURRENCY_SYMBOLS: Record<string, string> = {
+  TRY: '₺',
+  USD: '$',
+  KZT: '₸',
+};

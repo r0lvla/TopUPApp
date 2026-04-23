@@ -31,7 +31,7 @@ export default function Home() {
     setTitleCompact(scrollRef.current.scrollTop > 40);
   }, []);
 
-  const filteredProducts = products.filter((p: Product) => p.region === region && p.is_active);
+  const filteredProducts = products.filter((p: Product) => p.region === region && p.in_stock);
 
   const handleSelect = useCallback((product: Product) => {
     setSelectedProduct(product);
