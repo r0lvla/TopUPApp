@@ -86,9 +86,8 @@ export default function Home() {
               background: titleCompact ? 'rgba(0, 0, 0, 0.85)' : '#000',
               backdropFilter: titleCompact ? 'blur(20px) saturate(180%)' : 'none',
               WebkitBackdropFilter: titleCompact ? 'blur(20px) saturate(180%)' : 'none',
-              transition: 'background 0.25s ease, border-bottom 0.25s ease, padding 0.25s ease',
+              transition: 'padding 0.3s ease, background 0.3s ease',
               borderBottom: titleCompact ? '0.5px solid var(--ios-separator)' : 'none',
-              willChange: 'background',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{
@@ -107,20 +106,21 @@ export default function Home() {
                   TopUPApp
                 </Title>
               </div>
-              <Subheadline style={{
-                color: 'var(--ios-secondary-label)',
-                marginTop: 2,
-                marginLeft: 40,
-                letterSpacing: -0.2,
-                opacity: titleCompact ? 0 : 1,
-                maxHeight: titleCompact ? 0 : 24,
-                transform: titleCompact ? 'translateY(-6px)' : 'translateY(0)',
-                transition: 'opacity 0.2s ease, max-height 0.2s ease, transform 0.2s ease',
+              <div style={{
                 overflow: 'hidden',
-                pointerEvents: titleCompact ? 'none' : 'auto',
+                maxHeight: titleCompact ? 0 : 30,
+                transition: 'max-height 0.3s ease, opacity 0.3s ease',
+                opacity: titleCompact ? 0 : 1,
               }}>
-                Подарочные карты Apple
-              </Subheadline>
+                <Subheadline style={{
+                  color: 'var(--ios-secondary-label)',
+                  marginTop: 2,
+                  marginLeft: 40,
+                  letterSpacing: -0.2,
+                }}>
+                  Подарочные карты Apple
+                </Subheadline>
+              </div>
             </div>
 
             {/* Region selector */}
