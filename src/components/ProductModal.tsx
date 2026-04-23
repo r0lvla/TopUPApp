@@ -29,17 +29,44 @@ const REGION_META: Record<string, { flag: string; name: string; accent: string }
 export function ProductModal({ product, open, onClose }: ProductModalProps) {
   const { notification, impact } = useHaptic();
   const [purchasing, setPurchasing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handlePurchase = useCallback(() => {
+  const handlePurchase = useCallback(async () => {
     if (!product) return;
     setPurchasing(true);
+    setError(null);
     impact('heavy');
-    setTimeout(() => {
+
+    try {
+      const res = await fetch('/api/payment/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: product.id,
+          price_rub: product.price_rub,
+          description: `Apple Gift Card ${product.face_value} ${CURRENCY_SYMBOLS[product.face_currency] || product.face_currency} (${REGION_META[product.region]?.name || product.region})`,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Ошибка создания платежа');
+      }
+
+      if (data.confirmation_url) {
+        notification('success');
+        // Redirect to YooKassa payment page
+        window.location.href = data.confirmation_url;
+      } else {
+        throw new Error('Не получена ссылка на оплату');
+      }
+    } catch (e) {
+      impact('heavy');
+      setError(e instanceof Error ? e.message : 'Произошла ошибка');
       setPurchasing(false);
-      notification('success');
-      onClose();
-    }, 2000);
-  }, [product, impact, notification, onClose]);
+    }
+  }, [product, impact, notification]);
 
   if (!product) return null;
 
@@ -49,9 +76,9 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
   return (
     <Modal
       open={open}
-      onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}
+      onOpenChange={(isOpen) => { if (!isOpen && !purchasing) onClose(); }}
       snapPoints={[0.65]}
-      dismissible
+      dismissible={!purchasing}
     >
       <div style={{
         padding: '8px 0 32px',
@@ -107,6 +134,18 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
           </Cell>
         </Section>
 
+        {error && (
+          <Caption style={{
+            color: '#FF453A',
+            textAlign: 'center',
+            padding: '0 16px 8px',
+            display: 'block',
+            fontSize: 13,
+          }}>
+            {error}
+          </Caption>
+        )}
+
         <div style={{ padding: '8px 16px 0' }}>
           <Button
             mode="filled" size="l" stretched
@@ -114,7 +153,7 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
             disabled={purchasing}
             style={{ borderRadius: 14, fontWeight: 600, height: 50, fontSize: 17, letterSpacing: -0.4 }}
           >
-            {purchasing ? 'Обработка...' : `Оплатить ${product.price_rub.toLocaleString('ru-RU')} ₽`}
+            {purchasing ? 'Переход к оплате...' : `Оплатить ${product.price_rub.toLocaleString('ru-RU')} ₽`}
           </Button>
         </div>
 
