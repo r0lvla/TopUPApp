@@ -20,24 +20,11 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
   const { notification, impact } = useHaptic();
   const [purchasing, setPurchasing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [visible, setVisible] = useState(false);
   const [dragY, setDragY] = useState(0);
+  const [closing, setClosing] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef(0);
   const isDragging = useRef(false);
-
-  useEffect(() => {
-    if (open) {
-      // Double rAF: first paints at translateY(100%), second starts animation
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setVisible(true);
-        });
-      });
-    } else {
-      setVisible(false);
-    }
-  }, [open]);
 
   // Close on back gesture/button
   useEffect(() => {
@@ -49,8 +36,11 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
 
   const handleClose = useCallback(() => {
     if (purchasing) return;
-    setVisible(false);
-    setTimeout(onClose, 300);
+    setClosing(true);
+    setTimeout(() => {
+      setClosing(false);
+      onClose();
+    }, 300);
   }, [purchasing, onClose]);
 
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
@@ -73,7 +63,6 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
 
   const handleTouchEnd = useCallback(() => {
     isDragging.current = false;
-    // If dragged more than 100px down — close
     if (dragY > 100) {
       handleClose();
     }
@@ -116,10 +105,15 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
     }
   }, [product, impact, notification]);
 
-  if (!product || !open) return null;
+  const meta = product ? (REGION_META[product.region] || REGION_META.TR) : REGION_META.TR;
+  const symbol = product ? (CURRENCY_SYMBOLS[product.face_currency] || product.face_currency) : '';
 
-  const meta = REGION_META[product.region] || REGION_META.TR;
-  const symbol = CURRENCY_SYMBOLS[product.face_currency] || product.face_currency;
+  // Animation state:
+  // - Not open: visibility hidden, sheet at translateY(100%)
+  // - Opening: @keyframes slideUp plays (CSS animation)
+  // - Closing: transition transform to translateY(100%)
+  const isActive = open && !closing;
+  const isHidden = !open && !closing;
 
   return (
     <div
@@ -128,13 +122,14 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
         position: 'fixed',
         inset: 0,
         zIndex: 100,
-        background: visible ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0)',
+        background: isActive ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         display: 'flex',
         alignItems: 'flex-end',
         justifyContent: 'center',
-        transition: 'background 0.25s ease',
+        transition: 'background 0.3s ease',
+        visibility: isHidden ? 'hidden' : 'visible',
       }}
     >
       <div
@@ -147,16 +142,31 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
           maxWidth: 480,
           background: 'rgba(28, 28, 30, 0.95)',
           borderRadius: '20px 20px 0 0',
-          transform: visible
-            ? `translateY(${dragY}px)`
-            : 'translateY(100%)',
-          transition: dragY === 0
-            ? 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)'
-            : 'none',
+          // Opening: keyframe animation. Closing: transition. Dragging: none.
+          ...(isActive && dragY === 0
+            ? { animation: 'slideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards' }
+            : {}),
+          ...(closing
+            ? {
+                transform: 'translateY(100%)',
+                transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
+              }
+            : {}),
+          ...(dragY > 0 && isActive
+            ? { transform: `translateY(${dragY}px)`, transition: 'none' }
+            : {}),
           paddingBottom: 'env(safe-area-inset-bottom, 32px)',
         }}
       >
-        {/* Handle — touch target for swipe */}
+        {/* Inline @keyframes */}
+        <style>{`
+          @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+          }
+        `}</style>
+
+        {/* Handle */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -191,146 +201,147 @@ export function ProductModal({ product, open, onClose }: ProductModalProps) {
           </button>
         </div>
 
-        {/* Product header — now fully below the handle row */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 16,
-          padding: '12px 20px',
-          background: meta.gradient,
-          borderRadius: '16px',
-          margin: '0 16px',
-        }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: 14,
-            background: `${meta.accent}22`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 28,
-          }}>
-            {meta.flag}
-          </div>
-          <div>
+        {product && (
+          <>
+            {/* Product header */}
             <div style={{
-              fontSize: 19, fontWeight: 700, color: '#fff',
-              letterSpacing: -0.4, lineHeight: 1.2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 16,
+              padding: '12px 20px',
+              background: meta.gradient,
+              borderRadius: '16px',
+              margin: '0 16px',
             }}>
-              Apple Gift Card
+              <div style={{
+                width: 56, height: 56, borderRadius: 14,
+                background: `${meta.accent}22`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 28,
+              }}>
+                {meta.flag}
+              </div>
+              <div>
+                <div style={{
+                  fontSize: 19, fontWeight: 700, color: '#fff',
+                  letterSpacing: -0.4, lineHeight: 1.2,
+                }}>
+                  Apple Gift Card
+                </div>
+                <div style={{
+                  fontSize: 15, color: 'rgba(255,255,255,0.55)',
+                  marginTop: 2,
+                }}>
+                  {meta.name} • {product.face_value.toLocaleString()} {symbol}
+                </div>
+              </div>
             </div>
+
+            {/* Order details */}
             <div style={{
-              fontSize: 15, color: 'rgba(255,255,255,0.55)',
-              marginTop: 2,
-            }}>
-              {meta.name} • {product.face_value.toLocaleString()} {symbol}
-            </div>
-          </div>
-        </div>
-
-        {/* Order details */}
-        <div style={{
-          margin: '16px 16px 0',
-          background: 'rgba(120, 120, 128, 0.08)',
-          borderRadius: 14,
-          overflow: 'hidden',
-        }}>
-          {/* Номинал */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '14px 16px',
-            borderBottom: '0.5px solid rgba(120, 120, 128, 0.16)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 18 }}>🎴</span>
-              <span style={{ fontSize: 16, fontWeight: 500, color: '#fff' }}>Номинал</span>
-            </div>
-            <span style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>
-              {product.face_value.toLocaleString()} {symbol}
-            </span>
-          </div>
-
-          {/* Оплата */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '14px 16px',
-            borderBottom: '0.5px solid rgba(120, 120, 128, 0.16)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 18 }}>💳</span>
-              <span style={{ fontSize: 16, fontWeight: 500, color: '#fff' }}>Оплата</span>
-            </div>
-            <span style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)' }}>
-              Банковская карта
-            </span>
-          </div>
-
-          {/* Итого */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '14px 16px',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 18 }}>💰</span>
-              <span style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>Итого</span>
-            </div>
-            <span style={{ fontSize: 22, fontWeight: 700, color: meta.accent, letterSpacing: -0.5 }}>
-              {product.price_rub.toLocaleString('ru-RU')} ₽
-            </span>
-          </div>
-        </div>
-
-        {/* Error */}
-        {error && (
-          <div style={{
-            color: '#FF453A',
-            textAlign: 'center',
-            padding: '8px 16px',
-            fontSize: 13,
-          }}>
-            {error}
-          </div>
-        )}
-
-        {/* Pay button */}
-        <div style={{ padding: '12px 16px 0' }}>
-          <button
-            onClick={handlePurchase}
-            disabled={purchasing}
-            style={{
-              width: '100%',
-              height: 52,
+              margin: '16px 16px 0',
+              background: 'rgba(120, 120, 128, 0.08)',
               borderRadius: 14,
-              border: 'none',
-              background: purchasing
-                ? 'rgba(120, 120, 128, 0.24)'
-                : meta.accent,
-              color: purchasing ? 'rgba(255,255,255,0.4)' : '#fff',
-              fontSize: 17,
-              fontWeight: 600,
-              letterSpacing: -0.4,
-              cursor: purchasing ? 'default' : 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            {purchasing ? 'Переход к оплате...' : `Оплатить ${product.price_rub.toLocaleString('ru-RU')} ₽`}
-          </button>
-        </div>
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '14px 16px',
+                borderBottom: '0.5px solid rgba(120, 120, 128, 0.16)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 18 }}>🎴</span>
+                  <span style={{ fontSize: 16, fontWeight: 500, color: '#fff' }}>Номинал</span>
+                </div>
+                <span style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>
+                  {product.face_value.toLocaleString()} {symbol}
+                </span>
+              </div>
 
-        {/* Hint */}
-        <div style={{
-          textAlign: 'center',
-          color: 'rgba(255,255,255,0.3)',
-          padding: '12px 16px 0',
-          fontSize: 13,
-        }}>
-          Код будет доставлен мгновенно после оплаты
-        </div>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '14px 16px',
+                borderBottom: '0.5px solid rgba(120, 120, 128, 0.16)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 18 }}>💳</span>
+                  <span style={{ fontSize: 16, fontWeight: 500, color: '#fff' }}>Оплата</span>
+                </div>
+                <span style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)' }}>
+                  Банковская карта
+                </span>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '14px 16px',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 18 }}>💰</span>
+                  <span style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>Итого</span>
+                </div>
+                <span style={{ fontSize: 22, fontWeight: 700, color: meta.accent, letterSpacing: -0.5 }}>
+                  {product.price_rub.toLocaleString('ru-RU')} ₽
+                </span>
+              </div>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div style={{
+                color: '#FF453A',
+                textAlign: 'center',
+                padding: '8px 16px',
+                fontSize: 13,
+              }}>
+                {error}
+              </div>
+            )}
+
+            {/* Pay button */}
+            <div style={{ padding: '12px 16px 0' }}>
+              <button
+                onClick={handlePurchase}
+                disabled={purchasing}
+                style={{
+                  width: '100%',
+                  height: 52,
+                  borderRadius: 14,
+                  border: 'none',
+                  background: purchasing
+                    ? 'rgba(120, 120, 128, 0.24)'
+                    : meta.accent,
+                  color: purchasing ? 'rgba(255,255,255,0.4)' : '#fff',
+                  fontSize: 17,
+                  fontWeight: 600,
+                  letterSpacing: -0.4,
+                  cursor: purchasing ? 'default' : 'pointer',
+                  transition: 'background 0.2s ease',
+                }}
+              >
+                {purchasing ? 'Переход к оплате...' : `Оплатить ${product.price_rub.toLocaleString('ru-RU')} ₽`}
+              </button>
+            </div>
+
+            {/* Hint */}
+            <div style={{
+              textAlign: 'center',
+              color: 'rgba(255,255,255,0.3)',
+              padding: '12px 16px 0',
+              fontSize: 13,
+            }}>
+              Код будет доставлен мгновенно после оплаты
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
