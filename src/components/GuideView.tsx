@@ -5,36 +5,12 @@ import { Headline, Caption, Subheadline } from '@telegram-apps/telegram-ui';
 import { useHaptic } from '../hooks/useHaptic';
 
 const GUIDE_STEPS = [
-  {
-    title: 'Откройте App Store',
-    description: 'Нажмите на иконку вашего профиля в правом верхнем углу.',
-    icon: '🏪',
-  },
-  {
-    title: 'Выберите страну/регион',
-    description: 'Нажмите «Страна/Регион» → «Изменить страну или регион».',
-    icon: '🗺',
-  },
-  {
-    title: 'Выберите нужный регион',
-    description: 'Найдите в списке нужную страну (Турция, США или Казахстан) и подтвердите.',
-    icon: '✈️',
-  },
-  {
-    title: 'Введите адрес',
-    description: 'Используйте адрес из списка ниже. Номер телефона можно ввести любой.',
-    icon: '📝',
-  },
-  {
-    title: 'Готово!',
-    description: 'Теперь вы можете приобрести и активировать подарочную карту в новом регионе.',
-    icon: '🎉',
-  },
+  { title: 'Откройте App Store', description: 'Нажмите на иконку вашего профиля в правом верхнем углу.', icon: '🏪' },
+  { title: 'Выберите страну/регион', description: 'Нажмите «Страна/Регион» → «Изменить страну или регион».', icon: '🗺' },
+  { title: 'Выберите нужный регион', description: 'Найдите в списке нужную страну (Турция, США или Казахстан) и подтвердите.', icon: '✈️' },
+  { title: 'Введите адрес', description: 'Используйте адрес из списка ниже. Номер телефона можно ввести любой.', icon: '📝' },
+  { title: 'Готово!', description: 'Теперь вы можете приобрести и активировать подарочную карту в новом регионе.', icon: '🎉' },
 ];
-
-/* ───────────────────────────────────────────
-   Address pools — real residential districts
-   ─────────────────────────────────────────── */
 
 interface Address {
   city: string;
@@ -82,32 +58,23 @@ const REGION_META: Record<string, {
   countryRu: string;
   accent: string;
   gradient: string;
-  glowColor: string;
+  glow: string;
   flag: string;
 }> = {
   TR: {
-    country: 'Turkey',
-    countryRu: 'Турция',
-    accent: '#FF9F0A',
+    country: 'Turkey', countryRu: 'Турция', accent: '#FF9F0A',
     gradient: 'linear-gradient(135deg, #E30A17 0%, #FF6B35 100%)',
-    glowColor: 'rgba(227, 10, 23, 0.11)',
-    flag: '🇹🇷',
+    glow: 'rgba(227, 10, 23, 0.08)', flag: '🇹🇷',
   },
   US: {
-    country: 'United States',
-    countryRu: 'США',
-    accent: '#0A84FF',
+    country: 'United States', countryRu: 'США', accent: '#0A84FF',
     gradient: 'linear-gradient(135deg, #3C5AFF 0%, #B31942 100%)',
-    glowColor: 'rgba(60, 90, 255, 0.11)',
-    flag: '🇺🇸',
+    glow: 'rgba(60, 90, 255, 0.08)', flag: '🇺🇸',
   },
   KZ: {
-    country: 'Kazakhstan',
-    countryRu: 'Казахстан',
-    accent: '#30D158',
+    country: 'Kazakhstan', countryRu: 'Казахстан', accent: '#30D158',
     gradient: 'linear-gradient(135deg, #00B5B6 0%, #FFB900 100%)',
-    glowColor: 'rgba(0, 181, 182, 0.11)',
-    flag: '🇰🇿',
+    glow: 'rgba(0, 181, 182, 0.08)', flag: '🇰🇿',
   },
 };
 
@@ -123,7 +90,6 @@ export function GuideView() {
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
 
-  // Randomly selected address per region
   const [selectedAddresses, setSelectedAddresses] = useState<Record<string, Address>>(() => {
     const init: Record<string, Address> = {};
     for (const region of Object.keys(ADDRESS_POOLS)) {
@@ -169,7 +135,6 @@ export function GuideView() {
     });
   }, [selectedAddresses, notification]);
 
-  // Swipe to change steps
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
@@ -178,7 +143,6 @@ export function GuideView() {
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     const dy = e.changedTouches[0].clientY - touchStartY.current;
-    // Only horizontal swipes (dx > 2x dy) and long enough (>50px)
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 2) {
       if (dx < 0 && currentStep < GUIDE_STEPS.length - 1) {
         impact('light');
@@ -192,50 +156,39 @@ export function GuideView() {
 
   return (
     <div style={{ padding: '0 0 100px' }}>
+
       {/* ===== PROGRESS DOTS ===== */}
       <div style={{ padding: '0 16px 20px', display: 'flex', gap: 8, justifyContent: 'center' }}>
         {GUIDE_STEPS.map((_, i) => (
-          <div
-            key={i}
-            style={{
-              width: i === currentStep ? 24 : 8,
-              height: 8,
-              borderRadius: 4,
-              background: i === currentStep
-                ? '#0A84FF'
-                : i < currentStep
-                  ? 'rgba(10, 132, 255, 0.4)'
-                  : 'rgba(120, 120, 128, 0.24)',
-              transition: 'all 0.3s ease',
-            }}
-          />
+          <div key={i} style={{
+            width: i === currentStep ? 24 : 8,
+            height: 8, borderRadius: 4,
+            background: i === currentStep ? '#0A84FF'
+              : i < currentStep ? 'rgba(10, 132, 255, 0.4)'
+              : 'rgba(120, 120, 128, 0.24)',
+            transition: 'all 0.3s ease',
+          }} />
         ))}
       </div>
 
-      {/* ===== CURRENT STEP CARD (swipeable) ===== */}
+      {/* ===== STEP CARD ===== */}
       <div
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         style={{ margin: '0 16px 16px', touchAction: 'pan-y' }}
       >
-        <div className="ios-card stagger-item" style={{
-          padding: 24,
-          position: 'relative',
-          overflow: 'hidden',
-          minHeight: 130,
-          display: 'flex',
-          alignItems: 'flex-start',
+        <div className="ios-card" style={{
+          padding: 20, position: 'relative', overflow: 'hidden',
         }}>
-          {/* Step glow */}
+          {/* Glow orb — same as ProductCard */}
           <div style={{
-            position: 'absolute', top: -20, right: -20,
-            width: 100, height: 100, borderRadius: '50%',
+            position: 'absolute', top: -30, right: -30,
+            width: 120, height: 120, borderRadius: '50%',
             background: 'rgba(10, 132, 255, 0.08)', filter: 'blur(30px)',
             pointerEvents: 'none',
           }} />
 
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, position: 'relative', width: '100%' }}>
-            {/* Step icon */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, position: 'relative' }}>
             <div style={{
               width: 44, height: 44, borderRadius: 12, flexShrink: 0,
               background: 'rgba(10, 132, 255, 0.12)',
@@ -244,7 +197,6 @@ export function GuideView() {
             }}>
               {step.icon}
             </div>
-
             <div style={{ flex: 1 }}>
               <Caption style={{ color: '#0A84FF', fontWeight: 600, marginBottom: 4, letterSpacing: 0.5, textTransform: 'uppercase', fontSize: 11 }}>
                 Шаг {currentStep + 1} из {GUIDE_STEPS.length}
@@ -260,41 +212,34 @@ export function GuideView() {
         </div>
       </div>
 
-      {/* ===== NAVIGATION BUTTONS ===== */}
+      {/* ===== NAV BUTTONS ===== */}
       <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        gap: 12,
-        padding: '0 16px 24px',
+        display: 'flex', justifyContent: 'space-between',
+        gap: 12, padding: '0 16px 24px',
       }}>
         <button
           disabled={currentStep === 0}
           onClick={() => { impact('light'); setCurrentStep(Math.max(0, currentStep - 1)); }}
+          className="ios-card"
           style={{
-            flex: 1,
-            height: 48,
-            borderRadius: 14,
-            border: '1px solid rgba(120, 120, 128, 0.18)',
-            background: currentStep === 0
-              ? 'rgba(120, 120, 128, 0.06)'
-              : 'rgba(30, 40, 65, 0.35)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            color: currentStep === 0 ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.75)',
-            fontSize: 16,
-            fontWeight: 600,
-            letterSpacing: -0.3,
+            flex: 1, height: 48, borderRadius: 14,
+            background: currentStep === 0 ? 'rgba(44, 44, 46, 0.5)' : 'var(--ios-card-bg)',
+            border: '0.5px solid var(--ios-card-border)',
+            color: currentStep === 0 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.85)',
+            fontSize: 16, fontWeight: 600, letterSpacing: -0.3,
             cursor: currentStep === 0 ? 'default' : 'pointer',
-            transition: 'all 0.4s ease',
             fontFamily: 'inherit',
+            transition: 'transform 0.15s ease, background 0.3s ease',
             WebkitTapHighlightColor: 'transparent',
           }}
           onTouchStart={(e) => {
             if (currentStep === 0) return;
-            (e.currentTarget as HTMLElement).style.background = 'rgba(80, 100, 180, 0.6)';
+            (e.currentTarget as HTMLElement).style.transform = 'scale(0.97)';
+            (e.currentTarget as HTMLElement).style.background = 'rgba(60, 60, 68, 0.95)';
           }}
           onTouchEnd={(e) => {
-            (e.currentTarget as HTMLElement).style.background = 'rgba(30, 40, 65, 0.35)';
+            (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
+            (e.currentTarget as HTMLElement).style.background = 'var(--ios-card-bg)';
           }}
         >
           ← Назад
@@ -302,33 +247,26 @@ export function GuideView() {
         <button
           disabled={currentStep === GUIDE_STEPS.length - 1}
           onClick={() => { impact('light'); setCurrentStep(Math.min(GUIDE_STEPS.length - 1, currentStep + 1)); }}
+          className="ios-card"
           style={{
-            flex: 1,
-            height: 48,
-            borderRadius: 14,
-            border: '1px solid rgba(120, 120, 128, 0.18)',
-            background: currentStep === GUIDE_STEPS.length - 1
-              ? 'rgba(120, 120, 128, 0.06)'
-              : 'rgba(30, 40, 65, 0.35)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            color: currentStep === GUIDE_STEPS.length - 1
-              ? 'rgba(255,255,255,0.18)'
-              : 'rgba(255,255,255,0.75)',
-            fontSize: 16,
-            fontWeight: 600,
-            letterSpacing: -0.3,
+            flex: 1, height: 48, borderRadius: 14,
+            background: currentStep === GUIDE_STEPS.length - 1 ? 'rgba(44, 44, 46, 0.5)' : 'var(--ios-card-bg)',
+            border: '0.5px solid var(--ios-card-border)',
+            color: currentStep === GUIDE_STEPS.length - 1 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.85)',
+            fontSize: 16, fontWeight: 600, letterSpacing: -0.3,
             cursor: currentStep === GUIDE_STEPS.length - 1 ? 'default' : 'pointer',
-            transition: 'all 0.4s ease',
             fontFamily: 'inherit',
+            transition: 'transform 0.15s ease, background 0.3s ease',
             WebkitTapHighlightColor: 'transparent',
           }}
           onTouchStart={(e) => {
             if (currentStep === GUIDE_STEPS.length - 1) return;
-            (e.currentTarget as HTMLElement).style.background = 'rgba(80, 100, 180, 0.6)';
+            (e.currentTarget as HTMLElement).style.transform = 'scale(0.97)';
+            (e.currentTarget as HTMLElement).style.background = 'rgba(60, 60, 68, 0.95)';
           }}
           onTouchEnd={(e) => {
-            (e.currentTarget as HTMLElement).style.background = 'rgba(30, 40, 65, 0.35)';
+            (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
+            (e.currentTarget as HTMLElement).style.background = 'var(--ios-card-bg)';
           }}
         >
           Далее →
@@ -337,9 +275,7 @@ export function GuideView() {
 
       {/* ===== SECTION DIVIDER ===== */}
       <div style={{ padding: '0 16px', marginBottom: 16 }}>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14,
-        }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
           <span style={{ fontSize: 20 }}>📍</span>
           <Subheadline weight="2" style={{ fontWeight: 700, letterSpacing: -0.3, color: 'var(--ios-label)' }}>
             Адреса для смены региона
@@ -351,7 +287,7 @@ export function GuideView() {
       </div>
 
       {/* ===== ADDRESS CARDS ===== */}
-      <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {Object.entries(REGION_META).map(([region, meta]) => {
           const addr = selectedAddresses[region];
           const isOpen = expandedRegion === region;
@@ -360,160 +296,134 @@ export function GuideView() {
           return (
             <div
               key={region}
+              className="ios-card"
               style={{
-                borderRadius: 16,
                 overflow: 'hidden',
-                border: `1px solid ${isOpen ? meta.accent + '33' : 'rgba(84, 84, 88, 0.3)'}`,
-                transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
-                boxShadow: isOpen
-                  ? `0 0 16px ${meta.glowColor}`
-                  : `0 2px 10px ${meta.glowColor}`,
                 position: 'relative',
+                backgroundSize: '200% 200%',
               }}
             >
-              {/* Gradient bg — always visible, brighter when open */}
+              {/* Glow orb — same as ProductCard */}
               <div style={{
-                position: 'absolute',
-                inset: 0,
-                background: meta.gradient,
-                opacity: isOpen ? 0.25 : 0.12,
-                transition: 'opacity 0.3s ease',
+                position: 'absolute', top: -30, right: -30,
+                width: 120, height: 120, borderRadius: '50%',
+                background: meta.glow, filter: 'blur(30px)',
                 pointerEvents: 'none',
               }} />
 
-              {/* Dark overlay for readability */}
+              {/* Gradient bg layer */}
               <div style={{
-                position: 'relative',
-                background: 'rgba(20, 20, 22, 0.82)',
-                backdropFilter: 'blur(16px) saturate(150%)',
-                WebkitBackdropFilter: 'blur(16px) saturate(150%)',
-              }}>
-                {/* Card header — tappable */}
-                <button
-                  onClick={() => {
-                    impact('light');
-                    setExpandedRegion(isOpen ? null : region);
-                  }}
-                  style={{
-                    width: '100%',
-                    background: 'transparent',
-                    border: 'none',
-                    outline: 'none',
-                    cursor: 'pointer',
-                    padding: '14px 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    WebkitTapHighlightColor: 'transparent',
-                    color: 'var(--ios-label)',
-                    textAlign: 'left',
-                    fontFamily: 'inherit',
-                  }}
-                >
-                  {/* Flag circle */}
-                  <div style={{
-                    width: 42, height: 42, borderRadius: '50%', flexShrink: 0,
-                    background: meta.gradient,
-                    backgroundSize: '200% 200%',
-                    animation: 'gradientShift 5s ease infinite',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 20,
-                    boxShadow: `0 2px 10px ${meta.glowColor}`,
-                  }}>
+                position: 'absolute', inset: 0,
+                background: meta.glow,
+                backgroundSize: '200% 200%',
+                animation: 'gradientShift 6s ease infinite',
+                pointerEvents: 'none',
+                opacity: isOpen ? 1 : 0.6,
+                transition: 'opacity 0.3s ease',
+              }} />
+
+              {/* Card header — tappable */}
+              <button
+                onClick={() => {
+                  impact('light');
+                  setExpandedRegion(isOpen ? null : region);
+                }}
+                style={{
+                  width: '100%', background: 'transparent',
+                  border: 'none', outline: 'none', cursor: 'pointer',
+                  padding: '16px 20px',
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  WebkitTapHighlightColor: 'transparent',
+                  color: 'var(--ios-label)', textAlign: 'left', fontFamily: 'inherit',
+                  position: 'relative',
+                }}
+              >
+                {/* Flag circle — same style as ProductCard */}
+                <div style={{
+                  width: 48, height: 48, borderRadius: '50%',
+                  background: meta.gradient,
+                  backgroundSize: '200% 200%',
+                  animation: 'gradientShift 5s ease infinite',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                }}>
+                  <span style={{ fontSize: 20 }}>
                     {meta.flag}
-                  </div>
+                  </span>
+                </div>
 
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: 15, letterSpacing: -0.3, color: 'var(--ios-label)' }}>
-                      {meta.countryRu}
-                    </div>
-                    <div style={{ fontSize: 13, color: 'var(--ios-secondary-label)', marginTop: 1 }}>
-                      {addr.city}, {addr.zip}
-                    </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 15, letterSpacing: -0.3, color: 'var(--ios-label)' }}>
+                    {meta.countryRu}
                   </div>
+                  <div style={{ fontSize: 13, color: 'var(--ios-secondary-label)', marginTop: 2 }}>
+                    {addr.city}, {addr.zip}
+                  </div>
+                </div>
 
-                  {/* Expand indicator */}
+                <div style={{
+                  transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.25s ease',
+                  color: 'var(--ios-tertiary-label)', fontSize: 14,
+                }}>
+                  ▾
+                </div>
+              </button>
+
+              {/* Expanded content */}
+              {isOpen && (
+                <div style={{
+                  padding: '0 20px 16px',
+                  animation: 'fadeIn 0.2s ease',
+                  position: 'relative',
+                }}>
                   <div style={{
-                    transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.25s ease',
-                    color: isOpen ? meta.accent : 'var(--ios-tertiary-label)',
-                    fontSize: 14,
+                    background: 'var(--ios-tertiary-bg)',
+                    borderRadius: 12, padding: 16,
                   }}>
-                    ▾
-                  </div>
-                </button>
-
-                {/* Expanded content — inner area stays neutral */}
-                {isOpen && (
-                  <div style={{
-                    padding: '0 16px 16px',
-                    animation: 'fadeIn 0.2s ease',
-                  }}>
-                    {/* Inner address block — always dark/neutral */}
-                    <div style={{
-                      background: 'rgba(0, 0, 0, 0.55)',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      borderRadius: 12,
-                      padding: 16,
-                    }}>
-                      <div style={{
-                        fontSize: 14, lineHeight: 1.8,
-                        color: 'var(--ios-label)',
-                      }}>
-                        <div style={{ fontWeight: 500 }}>{addr.street}</div>
-                        <div>{addr.city}{addr.state ? `, ${addr.state}` : ''}</div>
-                        <div>{addr.zip}</div>
-                        <div style={{ color: 'var(--ios-secondary-label)', marginTop: 4, fontSize: 13 }}>
-                          {addr.phone}
-                        </div>
-                      </div>
-
-                      {/* Action row */}
-                      <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-                        <button
-                          onClick={() => copyAddress(region)}
-                          style={{
-                            background: isCopied ? 'rgba(48, 209, 88, 0.15)' : 'rgba(255,255,255,0.08)',
-                            border: 'none',
-                            borderRadius: 10,
-                            padding: '8px 14px',
-                            fontSize: 14,
-                            fontWeight: 600,
-                            color: isCopied ? '#30D158' : meta.accent,
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            fontFamily: 'inherit',
-                          }}
-                        >
-                          {isCopied ? '✓ Скопировано' : '📋 Скопировать'}
-                        </button>
-                        <button
-                          onClick={(e: React.MouseEvent) => {
-                            e.stopPropagation();
-                            shuffleAddress(region);
-                          }}
-                          style={{
-                            background: 'rgba(191, 90, 242, 0.12)',
-                            border: 'none',
-                            borderRadius: 10,
-                            padding: '8px 14px',
-                            fontSize: 14,
-                            fontWeight: 600,
-                            color: '#BF5AF2',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            fontFamily: 'inherit',
-                          }}
-                        >
-                          🎲 Другой адрес
-                        </button>
+                    <div style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--ios-label)' }}>
+                      <div style={{ fontWeight: 500 }}>{addr.street}</div>
+                      <div>{addr.city}{addr.state ? `, ${addr.state}` : ''}</div>
+                      <div>{addr.zip}</div>
+                      <div style={{ color: 'var(--ios-secondary-label)', marginTop: 4, fontSize: 13 }}>
+                        {addr.phone}
                       </div>
                     </div>
+
+                    <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                      <button
+                        onClick={() => copyAddress(region)}
+                        style={{
+                          background: isCopied ? 'rgba(48, 209, 88, 0.15)' : 'var(--ios-fill-tertiary)',
+                          border: 'none', borderRadius: 10, padding: '8px 14px',
+                          fontSize: 14, fontWeight: 600,
+                          color: isCopied ? '#30D158' : meta.accent,
+                          cursor: 'pointer', fontFamily: 'inherit',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        {isCopied ? '✓ Скопировано' : '📋 Скопировать'}
+                      </button>
+                      <button
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          shuffleAddress(region);
+                        }}
+                        style={{
+                          background: 'var(--ios-fill-tertiary)',
+                          border: 'none', borderRadius: 10, padding: '8px 14px',
+                          fontSize: 14, fontWeight: 600, color: '#BF5AF2',
+                          cursor: 'pointer', fontFamily: 'inherit',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        🎲 Другой адрес
+                      </button>
+                    </div>
                   </div>
-                )}
-              </div>
-              {/* end dark overlay */}
+                </div>
+              )}
             </div>
           );
         })}
