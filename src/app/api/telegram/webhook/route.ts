@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
 
 interface TelegramUpdate {
   update_id: number;
@@ -32,7 +29,10 @@ interface TelegramUpdate {
 
 const BOT_TOKEN = process.env.BOT_TOKEN!;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://topupapp-seven.vercel.app';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
+/** Call Telegram Bot API */
 async function telegramApi(method: string, params: Record<string, unknown>) {
   const resp = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${method}`, {
     method: 'POST',
@@ -42,6 +42,17 @@ async function telegramApi(method: string, params: Record<string, unknown>) {
   return resp.json();
 }
 
+/** Supabase REST helper */
+function sbHeaders(): Record<string, string> {
+  return {
+    'Content-Type': 'application/json',
+    apikey: SUPABASE_KEY,
+    Authorization: `Bearer ${SUPABASE_KEY}`,
+    Prefer: 'return=representation',
+  };
+}
+
+/** Ensure user exists in DB via Supabase REST */
 async function ensureUser(telegramUser: {
   id: number;
   first_name?: string;
@@ -49,28 +60,31 @@ async function ensureUser(telegramUser: {
   username?: string;
   language_code?: string;
 }) {
-  const existing = await db
-    .select()
-    .from(users)
-    .where(eq(users.telegramId, String(telegramUser.id)))
-    .limit(1);
+  // Check if user exists
+  const checkRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/users?telegram_id=eq.${telegramUser.id}&select=*&limit=1`,
+    { headers: sbHeaders() }
+  );
+  const existing = await checkRes.json();
 
-  if (existing.length > 0) {
+  if (existing && existing.length > 0) {
     return existing[0];
   }
 
-  const [newUser] = await db
-    .insert(users)
-    .values({
-      telegramId: String(telegramUser.id),
-      firstName: telegramUser.first_name,
-      lastName: telegramUser.last_name,
+  // Create new user
+  const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+    method: 'POST',
+    headers: sbHeaders(),
+    body: JSON.stringify({
+      telegram_id: String(telegramUser.id),
+      first_name: telegramUser.first_name,
+      last_name: telegramUser.last_name,
       username: telegramUser.username,
-      languageCode: telegramUser.language_code,
-    })
-    .returning();
-
-  return newUser;
+      language_code: telegramUser.language_code,
+    }),
+  });
+  const inserted = await insertRes.json();
+  return inserted?.[0] || null;
 }
 
 export async function POST(req: NextRequest) {
